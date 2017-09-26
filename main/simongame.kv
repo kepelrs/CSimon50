@@ -1,0 +1,104 @@
+<GameButton@Button>:
+    background_normal:  ''
+    background_color: [1,1,1,1]
+    size_hint_x: None
+    width: self.height
+
+<UpperBox@BoxLayout>:
+    size_hint: (1, 0.25)
+
+<GameBox@BoxLayout>:
+    size_hint: (1, 0.5)
+
+<BottonBox@BoxLayout>:
+    size_hint: (1, 0.25)
+
+
+SimonBoxLayout:
+
+<SimonBoxLayout>:
+    green: green_button
+    red: red_button
+    yellow: yellow_button
+    blue: blue_button
+    streak: streakkv
+    record: recordkv
+    restart_button: restart
+    turn: turn
+
+    orientation: "vertical"
+    padding: 15
+    spacing: 15
+
+    UpperBox:
+        Label:
+            id: turn
+            font_size: 16
+
+
+        Button:
+            id: restart
+            text: "NEW GAME"
+            font_size: 60
+            background_normal:  ''
+            background_color: [1,1,1,0.2]
+            on_press: root.setup(blue_button,green_button,red_button, yellow_button)
+
+    GameBox:
+        GridLayout:
+            rows: 2
+            cols: 2
+            spacing: 5
+            padding: 5
+
+            #BLUE
+            BoxLayout:
+                BoxLayout:
+                GameButton:
+                    id: blue_button
+                    background_color: [0/255,95/255,249/255,1]
+                    on_press: root.click_append(0)
+
+            #GREEN
+            BoxLayout:
+                GameButton:
+                    id: green_button
+                    background_color: [20/255,249/255,0/255,1]
+                    on_press: root.click_append(1)
+                BoxLayout:
+
+            #RED
+            BoxLayout:
+                BoxLayout:
+                GameButton:
+                    id: red_button
+                    background_color: [249/255,0/255,0/255,1]
+                    on_press: root.click_append(2)
+
+
+            #YELLOW
+            BoxLayout:
+                GameButton:
+                    id: yellow_button
+                    background_color: [249/255,240/255,0/255,1]
+                    on_press: root.click_append(3)
+                BoxLayout:
+
+
+
+    BottonBox:
+        BoxLayout:
+            orientation: "vertical"
+            Label:
+                id: streakkv
+                font_size: 32
+                text: "Click 'NEW GAME'"
+            
+            Label:
+                id: recordkv
+                font_size: 32
+                text: 'to begin'
+
+        Label:
+            text: "Test game by Nab."
+
