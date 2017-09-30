@@ -22,8 +22,6 @@ To make your Python app run on Android we will make use of a library called [Kiv
 
 The final apk is also included as [Simon.apk]().
 
-----------
-
 ## Getting Started
 
 Once you have your Python/Kivy code ready, the packaging process will takes 4 easy steps, although your computer may need a little time to finish 3 of them. Don't worry though, you will only have to do the slow steps once!
@@ -104,9 +102,7 @@ Wait for it to package and your apk will be in the simon/bin folder.
 Download/transfer your apk into your Android device and open it. Make sure to check the box "Unknown sources" in your general "Settings > Security" before installing, but uncheck it as soon as the installation is over.
 Have Fun! :)
 
-----------
-
-### Personal tips for avoiding errors and issues
+## Personal tips for avoiding errors and issues
 
 * Avoid special characters on your .spec file. I keep it alphanumeric for sanity.
 * If you are trying to build inside the shared folder and having errors, try building it elsewhere.
@@ -116,6 +112,6 @@ Have Fun! :)
 rm -rf .buildozer/android/app
 ```
 
-### License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
