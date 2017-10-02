@@ -1,5 +1,5 @@
 import kivy
-kivy.require('1.9.0')
+kivy.require('1.9.1')
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
@@ -16,18 +16,32 @@ class SimonBoxLayout(BoxLayout):
     """ Game logic goes inside this class."""
 
     # binded to newgame button
-    def setup(self, a, b, c, d):
-        ''' Receives colored buttons objects.'''
+    def start(self, *args):
+        ''' start a new game thread '''
+        threading.Thread(target=self.setup, args=args).start()
+
+    # setup a new game
+    def setup(self, r, b, g, y):
+        ''' Receives colored buttons objects.
+            Sets up all variables and starts game loop.'''
+
+        # blink once animation for start game button after clicked
+        self.custom_animate_button(self.restart_button, "down")
+
+        # if the player pushes "new game" while app is displaying a sequence
+        # make player wait for the sequence to be entirely displayed
+        try:
+            if not self.players_turn:
+                self.turn.color = [0 / 255, 95 / 255, 249 / 255, 1]
+                self.turn.text = ("You can only start a new game after this"
+                                  " sequence finishes")
+                return
+        # handle exception when button being pressed for the first time
+        except AttributeError:
+            pass
 
         # init/reset variables for new game
-        self.set_game_variables()
-        # sleep to allow older threads to die
-        sleep(0.1)
-
-        # setup class variables
-        self.objcs = [a, b, c, d]
-        self.rand_list = [randint(0, 3) for i in range(self.starting_size - 1)]
-        self.game_on = True
+        self.set_game_variables(r, b, g, y)
 
         # setup game screen
         display_streak = 'Current streak: ' + str(self.current_streak)
@@ -36,16 +50,21 @@ class SimonBoxLayout(BoxLayout):
         self.record.text = display_record
 
         # start game loop
-        threading.Thread(target=self.newgame).start()
+        self.game_on = True
+        self.newgame()
 
     # init/reset all game variables
-    def set_game_variables(self):
+    def set_game_variables(self, r, b, g, y):
+        ''' information about the game is stored in these variables '''
 
         # kivy button objects for the colored squares
-        self.objcs = []
+        self.objcs = [r, b, g, y]
+
+        # starting lenght of the sequence
+        self.starting_size = 1
 
         # random new sequence that player will try replicate
-        self.rand_list = []
+        self.rand_list = [randint(0, 3) for i in range(self.starting_size - 1)]
 
         # player current attempt to replicate sequence
         self.player_moves = []
@@ -56,23 +75,23 @@ class SimonBoxLayout(BoxLayout):
         # current longest registered sequence replicate
         self.longest_streak = self.load_record()
 
-        # starting lenght of the sequence
-        self.starting_size = 1
-
-        # game is still ongoing, used to continue looping game
-        self.game_on = False
-
         # in seconds, how long before next blinking square
         self.speed = 1
 
         # used to lock player input while showing sequence
-        self.players_turn = True
+        self.players_turn = False
 
         # if this game broke previous record
         self.new_record_flag = False
 
         # kill_thread_flag is used to kill python loops after game closes
         self.kill_thread_flag = threading.Event()
+
+        # used to continue looping game
+        self.game_on = False
+
+        # sleep to allow possible older threading loops to meet kill flags.
+        sleep(0.6)
 
     # game loop
     def newgame(self):
@@ -89,15 +108,15 @@ class SimonBoxLayout(BoxLayout):
     # schedule the sequence
     def output_pattern(self):
 
+        # lock player input while sequence being shown
+        self.change_turn(turn="computer")
+
         # add new value to sequence
         self.rand_list.append(randint(0, 3))
 
-        # lock player input while sequence being shown
-        self.change_turn()
-
         # time buffer between events in order to not move too fast for humans:
         buff = self.update_self_speed()
-        sleep(7 * buff)
+        sleep(5 * buff)
 
         # list of functions to blink (dim/turnon) each button in sequence
         dim_list = []
@@ -119,7 +138,8 @@ class SimonBoxLayout(BoxLayout):
             Clock.schedule_once(turnon_list[i], (i + 1) * (self.speed))
 
         # allow player's input after entire sequence was shown
-        Clock.schedule_once(self.change_turn, (i + 1) * (self.speed))
+        unlock_player = partial(self.change_turn, **{"turn": "player"})
+        Clock.schedule_once(unlock_player, (i + 1) * (self.speed))
 
     # get player's input
     def intake_pattern(self, *args):
@@ -131,12 +151,12 @@ class SimonBoxLayout(BoxLayout):
         while not self.players_turn:
 
             # check if program was closed
-            if self.kill_thread_flag.is_set():
+            if self.kill_thread_flag.is_set() or not self.game_on:
                 # if yes kill loop
                 return
 
             # sleep and wait to check again
-            sleep(1)
+            sleep(0.3)
 
         # Player button clicks will append values to self.player_moves.
         # This loop will check and make sure every click matches sequence.
@@ -150,20 +170,18 @@ class SimonBoxLayout(BoxLayout):
                 return
 
             # check if lists are equal
+            counter = 0
+
             for x, y in zip(self.player_moves, self.rand_list):
 
                 if x != y:
                     # if different, declare game over
                     self.game_on = False
                     return
+                counter += 1
 
             # return when player has reproduced the entire sequence
-            if len(self.player_moves) == len(self.rand_list):
-
-                # first confirm last input was indeed correct
-                if self.player_moves[-1] != self.rand_list[-1]:
-                    # if different, declare game over
-                    self.game_on = False
+            if counter == len(self.rand_list):
                 return
 
             # wait a little before continuing loop
@@ -200,11 +218,13 @@ class SimonBoxLayout(BoxLayout):
 
             announce = "GAMEOVER\nCongratulations!\nYour new record is "
             announce += str(self.current_streak) + " repetitions."
-            self.turn.text = (announce)
         else:
             announce = "GAMEOVER\nYour record remains "
             announce += str(self.longest_streak) + " repetitions."
-            self.turn.text = (announce)
+
+        self.turn.color = [1, 0, 0, 1]
+        self.turn.text = (announce)
+        sleep(1)
 
     # dim button (recieves *args because scheduling passes extra arg "dt")
     def showpattern_dim(self, obj, *args):
@@ -215,12 +235,20 @@ class SimonBoxLayout(BoxLayout):
         obj.background_color[-1] = 1
 
     # update if it's player turn to play or not
-    def change_turn(self, *args):
-        self.players_turn = not self.players_turn
-        if self.players_turn:
+    def change_turn(self, *args, turn, **kwargs):
+        # make output message yellow
+        self.turn.color = [1, 1, 0, 1]
+
+        if turn == "player":
+            self.players_turn = True
             self.turn.text = "YOUR TURN!"
-        else:
+
+        elif turn == "computer":
+            self.players_turn = False
             self.turn.text = ("REPEAT THIS SEQUENCE")
+
+        else:
+            raise ValueError("change turn error")
 
     # load record from storage file
     def load_record(self):
@@ -252,6 +280,17 @@ class SimonBoxLayout(BoxLayout):
         self.speed = 0.4 if self.speed < 0.4 else self.speed
 
         return round(self.speed / 10, 2)
+
+    def custom_animate_button(self, button, high_or_low):
+        ''' animate button so the user knows it was clicked '''
+        if high_or_low == "down":
+            button.color = [1, 0, 0, 1]
+        elif high_or_low == "up":
+            def placeholder(*args):
+                button.color = [1, 1, 0, 1]
+            Clock.schedule_once(placeholder, 0.1)
+        else:
+            raise ValueError("Button state not recognized")
 
 
 # build and stop GUI

@@ -1,3 +1,10 @@
+<Label>
+    text_size: self.size
+    halign: "center"
+    valign: "center"
+#    font_name: "AtariSmall"
+    color: [1,1,0,1]
+
 <GameButton@Button>:
     background_normal:  ''
     background_color: [1,1,1,1]
@@ -12,9 +19,6 @@
 
 <BottonBox@BoxLayout>:
     size_hint: (1, 0.25)
-
-
-SimonBoxLayout:
 
 <SimonBoxLayout>:
     green: green_button
@@ -31,18 +35,22 @@ SimonBoxLayout:
     spacing: 15
 
     UpperBox:
-        Label:
-            id: turn
-            font_size: 16
+        BoxLayout:
+            size_hint: (0.7, 1)
+            Label:
+                id: turn
+                font_size: "32dp"
 
-
-        Button:
-            id: restart
-            text: "NEW GAME"
-            font_size: 60
-            background_normal:  ''
-            background_color: [1,1,1,0.2]
-            on_press: root.setup(blue_button,green_button,red_button, yellow_button)
+        BoxLayout:
+            size_hint: (0.3, 1)
+            Button:
+                id: restart
+                text: "NEW GAME"
+                font_size: "48dp"
+                background_normal:  ''
+                background_color: [1,1,1,0]
+                on_press: root.start(blue_button,green_button,red_button, yellow_button)
+                on_release: root.custom_animate_button(restart, "up")
 
     GameBox:
         GridLayout:
@@ -75,7 +83,6 @@ SimonBoxLayout:
                     background_color: [249/255,0/255,0/255,1]
                     on_press: root.click_append(2)
 
-
             #YELLOW
             BoxLayout:
                 GameButton:
@@ -84,21 +91,26 @@ SimonBoxLayout:
                     on_press: root.click_append(3)
                 BoxLayout:
 
-
-
     BottonBox:
         BoxLayout:
+            size_hint: (0.60, 1)
             orientation: "vertical"
             Label:
                 id: streakkv
-                font_size: 32
+                font_size: "32dp"
                 text: "Click 'NEW GAME'"
 
             Label:
                 id: recordkv
-                font_size: 32
+                font_size: "32dp"
                 text: 'to begin'
 
         Label:
-            text: "Test game by Nab."
+            size_hint: (0.4, 1)
+            valign: "bottom"
+            halign: "right"
+            color: [1,0,0,1]
+            font_size: "24dp"
+            text: "CS50 Final Project\nby Davi Barreto"
 
+SimonBoxLayout:
