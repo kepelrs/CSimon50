@@ -36,13 +36,11 @@
 
     UpperBox:
         BoxLayout:
-            size_hint: (0.7, 1)
             Label:
                 id: turn
-                font_size: "32dp"
+                font_size: "24dp"
 
         BoxLayout:
-            size_hint: (0.3, 1)
             Button:
                 id: restart
                 text: "NEW GAME"
@@ -92,25 +90,28 @@
                 BoxLayout:
 
     BottonBox:
+        orientation: "vertical"
         BoxLayout:
-            size_hint: (0.60, 1)
-            orientation: "vertical"
+            size_hint: (1, 0.8)
             Label:
+                valign: "bottom"
                 id: streakkv
-                font_size: "32dp"
-                text: "Click 'NEW GAME'"
+                font_size: "24dp"
+                text: "Click 'NEW GAME' to begin"
 
+        BoxLayout:
             Label:
+                valign: "top"
                 id: recordkv
-                font_size: "32dp"
-                text: 'to begin'
+                font_size: "24dp"
+                text: ''
 
         Label:
-            size_hint: (0.4, 1)
+            size_hint: (1, 0.2)
             valign: "bottom"
-            halign: "right"
+            halign: "center"
             color: [1,0,0,1]
-            font_size: "24dp"
-            text: "CS50 Final Project\nby Davi Barreto"
+            font_size: "12dp"
+            text: "CS50 Final Project by Davi Barreto 2017"
 
 SimonBoxLayout:

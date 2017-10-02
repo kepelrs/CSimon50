@@ -38,16 +38,18 @@ class SimonBoxLayout(BoxLayout):
                 return
         # handle exception when button being pressed for the first time
         except AttributeError:
-            pass
+            self.turn.color = [0 / 255, 95 / 255, 249 / 255, 1]
+            msg = "Starting game "
+            for i in range(4):
+                self.turn.text = msg
+                sleep(0.2)
+                msg += ". "
 
         # init/reset variables for new game
         self.set_game_variables(r, b, g, y)
 
         # setup game screen
-        display_streak = 'Current streak: ' + str(self.current_streak)
-        display_record = 'Current record: ' + str(self.longest_streak)
-        self.streak.text = display_streak
-        self.record.text = display_record
+        self.update_current()
 
         # start game loop
         self.game_on = True
@@ -56,6 +58,12 @@ class SimonBoxLayout(BoxLayout):
     # init/reset all game variables
     def set_game_variables(self, r, b, g, y):
         ''' information about the game is stored in these variables '''
+
+        # used to continue looping game
+        self.game_on = False
+
+        # sleep to allow possible older threading loops to meet kill flags.
+        sleep(1)
 
         # kivy button objects for the colored squares
         self.objcs = [r, b, g, y]
@@ -86,12 +94,6 @@ class SimonBoxLayout(BoxLayout):
 
         # kill_thread_flag is used to kill python loops after game closes
         self.kill_thread_flag = threading.Event()
-
-        # used to continue looping game
-        self.game_on = False
-
-        # sleep to allow possible older threading loops to meet kill flags.
-        sleep(0.6)
 
     # game loop
     def newgame(self):
@@ -204,7 +206,7 @@ class SimonBoxLayout(BoxLayout):
 
         # update the screen with your total streak and record
         streak = 'Current streak: ' + str(self.current_streak)
-        record = 'Current record: ' + str(self.longest_streak)
+        record = 'All time best: ' + str(self.longest_streak)
         self.streak.text = streak
         self.record.text = record
 

@@ -92,7 +92,7 @@ On that same buildozer.spec file, give your app a title, package.name, and packa
 After that run:
 
 ```
-buildozer -v android debug deploy run logcat
+buildozer -v android debug
 ```
 
 Wait for it to package and your apk will be in the simon/bin folder.
