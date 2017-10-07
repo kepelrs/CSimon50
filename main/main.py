@@ -3,7 +3,7 @@ kivy.require('1.9.1')
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
-from time import sleep
+from time import sleep, time
 from random import randint
 from functools import partial
 import threading
@@ -14,6 +14,12 @@ import threading
 # with "App">"(App) case sensitive
 class SimonBoxLayout(BoxLayout):
     """ Game logic goes inside this class."""
+
+    # when game is launched, start blinking new game button
+    def __init__(self):
+        super().__init__()
+        self.set_game_variables(init=True)
+        self.custom_animate_button(self.restart_button, "blink_loop")
 
     # binded to newgame button
     def start(self, *args):
@@ -28,25 +34,19 @@ class SimonBoxLayout(BoxLayout):
         # blink once animation for start game button after clicked
         self.custom_animate_button(self.restart_button, "down")
 
-        # if the player pushes "new game" while app is displaying a sequence
-        # make player wait for the sequence to be entirely displayed
-        try:
-            if not self.players_turn:
-                self.turn.color = [0 / 255, 95 / 255, 249 / 255, 1]
-                self.turn.text = ("You can only start a new game after this"
-                                  " sequence finishes")
-                return
-        # handle exception when button being pressed for the first time
-        except AttributeError:
-            self.turn.color = [0 / 255, 95 / 255, 249 / 255, 1]
-            msg = "Starting game "
-            for i in range(4):
-                self.turn.text = msg
-                sleep(0.2)
-                msg += ". "
+        # handle player clicking "new game" before game is over
+        if not self.players_turn:
+            return
+        elif self.game_on:
+            self.aborted = True
+        else:
+            self.aborted = False
 
         # init/reset variables for new game
         self.set_game_variables(r, b, g, y)
+
+        # game starting animation
+        self.game_starting()
 
         # setup game screen
         self.update_current()
@@ -56,17 +56,14 @@ class SimonBoxLayout(BoxLayout):
         self.newgame()
 
     # init/reset all game variables
-    def set_game_variables(self, r, b, g, y):
+    def set_game_variables(self, *args, init=False):
         ''' information about the game is stored in these variables '''
 
         # used to continue looping game
         self.game_on = False
 
-        # sleep to allow possible older threading loops to meet kill flags.
-        sleep(1)
-
         # kivy button objects for the colored squares
-        self.objcs = [r, b, g, y]
+        self.objcs = [i for i in args]
 
         # starting lenght of the sequence
         self.starting_size = 1
@@ -87,7 +84,7 @@ class SimonBoxLayout(BoxLayout):
         self.speed = 1
 
         # used to lock player input while showing sequence
-        self.players_turn = False
+        self.players_turn = init
 
         # if this game broke previous record
         self.new_record_flag = False
@@ -179,6 +176,7 @@ class SimonBoxLayout(BoxLayout):
                 if x != y:
                     # if different, declare game over
                     self.game_on = False
+                    self.aborted = False
                     return
                 counter += 1
 
@@ -213,12 +211,16 @@ class SimonBoxLayout(BoxLayout):
     # if game is over, announce it
     def announce_gameover(self):
 
+        # if game was aborted skip announcing
+        if self.aborted:
+            return
+
         # if there was a new record, update file, and congratulate
         if self.new_record_flag:
             with open("kivy.dll", mode="w") as f:
                 f.write(str(hex(self.current_streak)))
 
-            announce = "GAMEOVER\nCongratulations!\nYour new record is "
+            announce = "GAMEOVER\nCongratz!\nYour new record is "
             announce += str(self.current_streak) + " repetitions."
         else:
             announce = "GAMEOVER\nYour record remains "
@@ -226,7 +228,6 @@ class SimonBoxLayout(BoxLayout):
 
         self.turn.color = [1, 0, 0, 1]
         self.turn.text = (announce)
-        sleep(1)
 
     # dim button (recieves *args because scheduling passes extra arg "dt")
     def showpattern_dim(self, obj, *args):
@@ -266,11 +267,13 @@ class SimonBoxLayout(BoxLayout):
     # bound to colored buttons
     def click_append(self, color_number):
         # if its player turn, append to list else don't.
-        try:
-            if self.players_turn and self.game_on:
-                self.player_moves.append(color_number)
-        except AttributeError:
-            self.set_game_variables()
+        if self.players_turn and self.game_on:
+            self.player_moves.append(color_number)
+        elif not self.players_turn:
+            self.turn.color = [0 / 255, 95 / 255, 249 / 255, 1]
+            self.turn.text = "Not your turn yet!"
+        else:
+            pass
 
     # increment speed with every move
     def update_self_speed(self):
@@ -283,16 +286,43 @@ class SimonBoxLayout(BoxLayout):
 
         return round(self.speed / 10, 2)
 
+    # animate button so the user knows it was clicked
     def custom_animate_button(self, button, high_or_low):
-        ''' animate button so the user knows it was clicked '''
+
+        # turn button red when pressed
         if high_or_low == "down":
-            button.color = [1, 0, 0, 1]
+            button.color = [0 / 255, 95 / 255, 249 / 255, 1]
+
+        # turn yellow when released
         elif high_or_low == "up":
-            def placeholder(*args):
+            def unpress(*args):
                 button.color = [1, 1, 0, 1]
-            Clock.schedule_once(placeholder, 0.1)
+            Clock.schedule_once(unpress, 1)
+
+        # blinking effect when waiting for player to click
+        elif high_or_low == "blink_loop":
+            def blink(*args):
+                if self.game_on:
+                    button.color = [1, 1, 0, 1]
+                elif button.color == [1, 1, 0, 1]:
+                    button.color = [1, 0, 0, 1]
+                elif button.color == [1, 0, 0, 1]:
+                    button.color = [1, 1, 0, 1]
+            for i in range(3600):
+                Clock.schedule_once(blink, i * 0.5)
+
         else:
             raise ValueError("Button state not recognized")
+
+    # game starting animation
+    def game_starting(self):
+
+        msg = "Starting game "
+        self.turn.color = [0 / 255, 95 / 255, 249 / 255, 1]
+        for i in range(5):
+            self.turn.text = msg
+            msg += ". "
+            sleep(0.2)
 
 
 # build and stop GUI
