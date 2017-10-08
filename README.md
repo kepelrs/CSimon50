@@ -1,6 +1,6 @@
-# simon_kivy: CS50 Final Project
+# CSimon50: CS50 Final Project
 
-This is my final project for the CS50 course by HardardX/edX. I made an Android game using Python 3 and decided to leave some step by step helping guide for anyone who decides to do the same.
+This is my final project for the CS50 course by HardardX/edX. I made an Android game using Python 3 and decided to leave some step by step helping guide for anyone who decides to do something similar.
 
 ## Acknowledgments
 
@@ -20,7 +20,7 @@ To make your Python app run on Android we will make use of a library called [Kiv
 
 *Want to just quickly test this guide?* I've included a copy of my Python/Kivy code in this repo's "main" folder. It's heavily commented and you are welcome to use it. Once you see how this works, you can start building your own apps.
 
-The final apk is also included as [Simon.apk]().
+The final apk is also included as [Simon.apk](CSimon50.apk).
 
 ## Getting Started
 
