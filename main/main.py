@@ -1,3 +1,6 @@
+# import os
+# os.environ["KIVY_WINDOW"] = "sdl2"
+# uncomment the above lines to run on raspberrypi like it runs on windows.
 import kivy
 kivy.require('1.9.1')
 from kivy.app import App
