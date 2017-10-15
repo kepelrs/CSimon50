@@ -12,9 +12,6 @@ from functools import partial
 import threading
 
 
-# GUI file must be "<same name of this class>.kv" all lowercase
-# GUI builder class (at the end of file) must be "<same name replacing "Layout"
-# with "App">"(App) case sensitive
 class SimonBoxLayout(BoxLayout):
     """ Game logic goes inside this class."""
 
@@ -328,7 +325,7 @@ class SimonBoxLayout(BoxLayout):
             sleep(0.2)
 
 
-# build and stop GUI
+# .kv file must be <same name of this class without "App">.kv all lowercase
 class SimonGameApp(App):
 
     def on_stop(self):
